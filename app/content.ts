@@ -8,26 +8,36 @@
  */
 
 /**
+ * CrabNebula Cloud identifiers.
+ *
+ * `ORG` is the only thing here that has to be filled in by hand. It is the
+ * organization slug, visible in the dashboard URL:
+ * `https://web.crabnebula.cloud/<org>/<app>`. The CLI's `whoami` returns an
+ * internal ID rather than the slug, so it cannot be discovered from the API.
+ *
+ * Verify before shipping — a wrong slug is a 404 on the one button that matters:
+ *
+ *     curl -I https://cdn.crabnebula.app/download/<org>/ghost/latest/platform/nsis-x86_64
+ */
+const ORG = "ea-webcraft";
+const APP = "ghost";
+
+/** Confirmed from `cn release show`: the published Windows asset's platform key. */
+const WINDOWS_PLATFORM = "nsis-x86_64";
+
+/**
  * The installer.
  *
- * `href` can point at either of two places:
- *
- * - A file in `public/`, as it does now. Simple, but every release means
- *   copying a binary across and editing this file.
- * - A CrabNebula Cloud link:
- *   `https://cdn.crabnebula.app/download/<org>/<app>/latest/platform/<key>`
- *   `latest` always resolves to the newest published release, so publishing a
- *   release updates the site without touching it. The exact platform key is
- *   listed on the release page in the CrabNebula dashboard.
- *
- * `filename` is shown next to the button either way, so people know what they
- * are getting. When serving from `public/` it must match the file exactly —
- * nothing checks this, and a mismatch is a 404 on the one button that matters.
+ * `latest` always resolves to the newest *published* release, so cutting a
+ * release updates this page without touching it. That is the whole reason to
+ * serve from CrabNebula rather than from `public/` — the installer is
+ * gitignored, so a file-based link would 404 the moment the site is deployed
+ * from git.
  */
 export const DOWNLOAD = {
   version: "0.1.0",
   filename: "Ghost_0.1.0_x64-setup.exe",
-  href: "/Ghost_0.1.0_x64-setup.exe",
+  href: `https://cdn.crabnebula.app/download/${ORG}/${APP}/latest/platform/${WINDOWS_PLATFORM}`,
   size: "4.6 MB",
 } as const;
 
