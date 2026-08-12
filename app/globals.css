@@ -1,26 +1,187 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* -----------------------------------------------------------------------------
+   Tokens
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+   The page borrows the application's palette exactly, because the product and
+   the page for it should not look like two different things. Near-black with a
+   blue cast, one accent, and a grey ramp built in oklch so the steps are
+   perceptually even — a ramp mixed in hex drifts in hue and goes muddy at the
+   dark end, which is where nearly all of this page lives.
+----------------------------------------------------------------------------- */
+
+@theme {
+  --color-void: oklch(0.13 0.012 265);
+  --color-surface: oklch(0.175 0.014 265);
+  --color-raised: oklch(0.225 0.016 265);
+
+  --color-line: oklch(0.3 0.016 265);
+  --color-line-soft: oklch(0.235 0.013 265);
+
+  --color-ink: oklch(0.97 0.004 265);
+  --color-ink-muted: oklch(0.73 0.012 265);
+  --color-ink-faint: oklch(0.56 0.014 265);
+
+  --color-accent: oklch(0.82 0.15 195);
+  --color-live: oklch(0.8 0.17 145);
+  --color-warn: oklch(0.84 0.15 75);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--color-void);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: var(--color-accent);
+    color: var(--color-void);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .rule {
+    border-color: var(--color-line-soft);
+  }
+
+  /* Small uppercase monospace labels carry the page's structure. */
+  .label {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-ink-faint);
+  }
+
+  /* Display type. Optical sizing and tight tracking so the huge sizes read as
+     deliberate rather than as a default heading scaled up. */
+  .display {
+    font-weight: 600;
+    letter-spacing: -0.045em;
+    line-height: 0.93;
+    text-wrap: balance;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   Backdrop
+
+   A faint engineering grid with a drifting accent bloom. Both are drawn from
+   gradients rather than images: nothing to download, nothing to go blurry, and
+   the whole thing collapses to a flat colour under reduced motion.
+----------------------------------------------------------------------------- */
+
+.grid-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background-image:
+    linear-gradient(to right, oklch(1 0 0 / 0.028) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(1 0 0 / 0.028) 1px, transparent 1px);
+  background-size: 64px 64px;
+  /* Fade the grid out toward the bottom so it frames the hero instead of
+     tiling flatly down the whole page. */
+  mask-image: radial-gradient(ellipse 120% 70% at 50% 0%, #000 35%, transparent 78%);
+}
+
+.bloom {
+  position: fixed;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 9999px;
+  filter: blur(90px);
+  opacity: 0.16;
+  background: var(--color-accent);
+  animation: drift 22s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(-6%, -4%, 0) scale(1);
+  }
+  to {
+    transform: translate3d(8%, 6%, 0) scale(1.18);
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   Ticker
+
+   A slow marquee of the product's own status vocabulary. Duplicated inline so
+   the loop is seamless without measuring anything in JavaScript.
+----------------------------------------------------------------------------- */
+
+.ticker {
+  display: flex;
+  width: max-content;
+  animation: ticker 42s linear infinite;
+}
+
+@keyframes ticker {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    /* Exactly one copy's width, so the seam never shows. */
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+/* The caret trailing the streamed answer, matching the real overlay. */
+@keyframes ghost-blink {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.caret::after {
+  content: "";
+  display: inline-block;
+  width: 0.45em;
+  height: 1em;
+  margin-left: 0.1em;
+  vertical-align: text-bottom;
+  background: var(--color-accent);
+  animation: ghost-blink 1.1s steps(2, start) infinite;
+}
+
+/* A glow behind the overlay mock, so it sits above the page rather than in it. */
+.lifted {
+  box-shadow:
+    0 0 0 1px oklch(1 0 0 / 0.06),
+    0 32px 80px -20px oklch(0 0 0 / 0.9),
+    0 0 120px -40px var(--color-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .bloom,
+  .ticker,
+  .caret::after {
+    animation: none;
+  }
+  .caret::after {
+    opacity: 0.8;
+  }
 }
