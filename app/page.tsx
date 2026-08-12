@@ -62,9 +62,9 @@ function Header() {
 
         <div className="flex-1" />
 
-        <a href="#install" className="text-ink-muted hover:text-ink text-[13px] transition-colors">
+        {/* <a href="#install" className="text-ink-muted hover:text-ink text-[13px] transition-colors">
           Install
-        </a>
+        </a> */}
         <a
           href={DOWNLOAD.href}
           className="bg-ink text-void rounded-full px-4 py-1.5 text-[13px] font-medium transition-transform hover:scale-[1.03]"
